@@ -1,0 +1,66 @@
+:root {
+	color-scheme: dark;
+	--bg: #0b0f14;
+	--bg-elevated: rgba(18, 24, 32, 0.86);
+	--bg-panel: rgba(16, 22, 30, 0.72);
+	--line: rgba(148, 211, 198, 0.14);
+	--line-strong: rgba(148, 211, 198, 0.32);
+	--text: #e8eef2;
+	--muted: #8b9aab;
+	--teal: #5eead4;
+	--teal-deep: #0f766e;
+	--amber: #fb923c;
+	--violet: #c4b5fd;
+	--danger: #fb7185;
+	--ok: #34d399;
+	--shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+	--radius: 22px;
+	--font: 'Avenir Next', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Segoe UI', sans-serif;
+	--mono: 'SF Mono', 'JetBrains Mono', ui-monospace, monospace;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	min-height: 100%;
+	background: var(--bg);
+	color: var(--text);
+	font-family: var(--font);
+}
+
+body {
+	background:
+		radial-gradient(1100px 520px at -10% -20%, rgba(45, 212, 191, 0.16), transparent 55%),
+		radial-gradient(900px 420px at 110% 0%, rgba(251, 146, 60, 0.12), transparent 50%),
+		radial-gradient(700px 400px at 70% 120%, rgba(167, 139, 250, 0.1), transparent 55%),
+		var(--bg);
+}
+
+body::before {
+	content: '';
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	opacity: 0.05;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E");
+}
+
+button,
+input,
+select {
+	font: inherit;
+	color: inherit;
+}
+
+button {
+	cursor: pointer;
+}
+
+:focus-visible {
+	outline: 2px solid var(--teal);
+	outline-offset: 2px;
+}
