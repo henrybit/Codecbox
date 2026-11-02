@@ -1,5 +1,5 @@
 # 跨平台编译打包：Windows / macOS (arm64 + x64) / Linux
-# 触发：打 v* 标签，或手动 workflow_dispatch
+# 触发：向仓库推送 tag（如 v0.1.0）
 #
 # 仓库 Secrets（Settings → Secrets and variables → Actions）：
 #
@@ -31,13 +31,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
-  workflow_dispatch:
-    inputs:
-      release_draft:
-        description: '以草稿形式创建 GitHub Release'
-        type: boolean
-        default: true
+      - '*'
 
 concurrency:
   group: release-${{ github.ref }}
@@ -161,10 +155,8 @@ jobs:
           APPLE_API_KEY_PATH: ${{ env.APPLE_API_KEY_PATH }}
           API_PRIVATE_KEYS_DIR: ${{ env.API_PRIVATE_KEYS_DIR }}
         with:
-          # 打标签推送时挂到该 tag；手动触发时按 tauri.conf.json 版本创建 app-vX.Y.Z
-          # __VERSION__ 会被 tauri-action 替换为 tauri.conf.json 中的 version
-          tagName: ${{ github.event_name == 'push' && github.ref_name || 'app-v__VERSION__' }}
-          releaseName: ${{ github.event_name == 'push' && format('音视频转换器 {0}', github.ref_name) || '音视频转换器 v__VERSION__' }}
+          tagName: ${{ github.ref_name }}
+          releaseName: 音视频转换器 ${{ github.ref_name }}
           releaseBody: |
             ## 音视频转换器
 
@@ -175,6 +167,6 @@ jobs:
             - **Linux**：`.deb` / `.AppImage`
 
             运行时需要本机已安装 FFmpeg（含 `ffmpeg` / `ffprobe`）。
-          releaseDraft: ${{ github.event_name != 'workflow_dispatch' || inputs.release_draft }}
+          releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
