@@ -14,7 +14,7 @@
 </script>
 
 <svelte:head>
-	<title>音视频转换器</title>
+	<title>CodecBox</title>
 	<link rel="icon" href={favicon} />
 </svelte:head>
 

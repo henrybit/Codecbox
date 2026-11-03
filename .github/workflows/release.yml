@@ -156,9 +156,9 @@ jobs:
           API_PRIVATE_KEYS_DIR: ${{ env.API_PRIVATE_KEYS_DIR }}
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: 音视频转换器 ${{ github.ref_name }}
+          releaseName: CodecBox ${{ github.ref_name }}
           releaseBody: |
-            ## 音视频转换器
+            ## CodecBox
 
             下载对应平台安装包后安装即可。
 

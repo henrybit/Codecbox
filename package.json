@@ -1,5 +1,5 @@
 {
-	"name": "video-audio-convert",
+	"name": "codecbox",
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",

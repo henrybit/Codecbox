@@ -9,8 +9,8 @@
 	<div class="page">
 		<header>
 			<div>
-				<p class="brand">流转</p>
-				<h1>音视频转换器</h1>
+				<p class="brand">CodecBox</p>
+				<h1>音视频转换工具</h1>
 			</div>
 			<div class="status" class:ok={converter.ffmpeg?.available}>
 				<span></span>

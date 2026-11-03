@@ -1,4 +1,4 @@
-# 流转 · 音视频转换器
+# CodecBox
 
 基于 **Tauri 2** + **SvelteKit** 的桌面音视频转换工具。转换核心走 FFmpeg，参数构建、媒体探测、进度解析与取消全部封装在 Rust 层。
 
@@ -58,5 +58,5 @@ Rust 对外命令：`check_ffmpeg`、`list_formats`、`probe_media`、`suggest_o
 
 打包时可把 FFmpeg 放到可执行文件旁作为 sidecar；开发期默认使用系统 PATH，也可用环境变量：
 
-- `VIDEO_AUDIO_CONVERT_FFMPEG`
-- `VIDEO_AUDIO_CONVERT_FFPROBE`
+- `CODECBOX_FFMPEG`
+- `CODECBOX_FFPROBE`

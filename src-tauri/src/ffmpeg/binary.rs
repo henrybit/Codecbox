@@ -47,11 +47,11 @@ pub fn ffmpeg_status() -> FfmpegStatus {
 }
 
 pub fn find_ffmpeg() -> Result<PathBuf, AppError> {
-    find_tool("ffmpeg", "VIDEO_AUDIO_CONVERT_FFMPEG")
+    find_tool("ffmpeg", "CODECBOX_FFMPEG")
 }
 
 pub fn find_ffprobe() -> Result<PathBuf, AppError> {
-    find_tool("ffprobe", "VIDEO_AUDIO_CONVERT_FFPROBE")
+    find_tool("ffprobe", "CODECBOX_FFPROBE")
 }
 
 fn find_tool(name: &str, env_key: &str) -> Result<PathBuf, AppError> {

@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "音视频转换器",
+  "productName": "CodecBox",
   "version": "0.1.0",
-  "identifier": "com.qipenghui.videoaudioconvert",
+  "identifier": "com.qipenghui.codecbox",
   "build": {
     "frontendDist": "../build",
     "devUrl": "http://localhost:5173",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "音视频转换器",
+        "title": "CodecBox",
         "width": 1180,
         "height": 780,
         "minWidth": 960,
