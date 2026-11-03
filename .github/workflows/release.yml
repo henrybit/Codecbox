@@ -1,70 +1,30 @@
-# 跨平台编译打包：Windows / macOS (arm64 + x64) / Linux
-# 触发：向仓库推送 tag（如 v0.1.0）
-#
-# 仓库 Secrets（Settings → Secrets and variables → Actions）：
-#
-# --- macOS 代码签名（必需，用于签名 .app / .dmg）---
-# APPLE_CERTIFICATE              Developer ID Application 证书 .p12 的 Base64
-#                                openssl base64 -A -in certificate.p12 -out cert.txt
-# APPLE_CERTIFICATE_PASSWORD     导出 .p12 时设置的密码
-# APPLE_SIGNING_IDENTITY         可选；一般可不设，由证书自动推断
-#                                例：Developer ID Application: Your Name (TEAMID)
-#
-# --- macOS 公证（二选一）---
-# 方式 A — Apple ID：
-#   APPLE_ID                     Apple ID 邮箱
-#   APPLE_PASSWORD               App 专用密码（appleid.apple.com）
-#   APPLE_TEAM_ID                团队 ID（developer.apple.com → Membership）
-#
-# 方式 B — App Store Connect API Key（更适合 CI，推荐）：
-#   APPLE_API_KEY                Key ID（如 AB12CD34EF）
-#   APPLE_API_ISSUER             Issuer ID（UUID）
-#   APPLE_API_KEY_P8_BASE64      AuthKey_xxx.p8 文件的 Base64
-#                                openssl base64 -A -in AuthKey_xxx.p8 -out key.txt
-#
-# --- 可选：Windows 代码签名 ---
-# WINDOWS_CERTIFICATE            .pfx 的 Base64（certutil -encode certificate.pfx out.txt）
-# WINDOWS_CERTIFICATE_PASSWORD   .pfx 导出密码
-
 name: Release
 
+# 推送任意 tag 时编译并发布 Windows / macOS / Linux 安装包
 on:
   push:
     tags:
       - '*'
 
-concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: true
-
-permissions:
-  contents: write
-
 jobs:
-  publish-tauri:
+  publish:
+    permissions:
+      contents: write
+
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: macos-latest
             args: --target aarch64-apple-darwin
-            rust_targets: aarch64-apple-darwin
-            label: macos-aarch64
           - platform: macos-latest
             args: --target x86_64-apple-darwin
-            rust_targets: x86_64-apple-darwin
-            label: macos-x86_64
           - platform: ubuntu-22.04
             args: ''
-            rust_targets: ''
-            label: linux-x86_64
           - platform: windows-latest
             args: ''
-            rust_targets: ''
-            label: windows-x86_64
 
     runs-on: ${{ matrix.platform }}
-    name: build (${{ matrix.label }})
 
     steps:
       - name: Checkout
@@ -90,83 +50,46 @@ jobs:
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.rust_targets }}
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
-          shared-key: ${{ matrix.label }}
 
       - name: Install frontend dependencies
         run: npm ci
 
-      - name: Import Windows certificate
-        if: matrix.platform == 'windows-latest'
-        env:
-          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
-          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
-        shell: pwsh
-        run: |
-          if ([string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE)) {
-            Write-Host "WINDOWS_CERTIFICATE not set; skip Windows code signing."
-            exit 0
-          }
-          New-Item -ItemType Directory -Force -Path certificate | Out-Null
-          Set-Content -Path certificate/tempCert.txt -Value $env:WINDOWS_CERTIFICATE
-          certutil -decode certificate/tempCert.txt certificate/certificate.pfx
-          Remove-Item certificate/tempCert.txt
-          Import-PfxCertificate `
-            -FilePath certificate/certificate.pfx `
-            -CertStoreLocation Cert:\CurrentUser\My `
-            -Password (ConvertTo-SecureString -String $env:WINDOWS_CERTIFICATE_PASSWORD -Force -AsPlainText)
-
-      - name: Prepare Apple API key for notarization
-        if: startsWith(matrix.platform, 'macos')
-        env:
-          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
-          APPLE_API_KEY_P8_BASE64: ${{ secrets.APPLE_API_KEY_P8_BASE64 }}
-        run: |
-          if [ -z "${APPLE_API_KEY_P8_BASE64}" ] || [ -z "${APPLE_API_KEY}" ]; then
-            echo "Apple API Key not configured; notarization will use Apple ID secrets if present."
-            exit 0
-          fi
-          mkdir -p "$HOME/private_keys"
-          echo "$APPLE_API_KEY_P8_BASE64" | base64 --decode > "$HOME/private_keys/AuthKey_${APPLE_API_KEY}.p8"
-          chmod 600 "$HOME/private_keys/AuthKey_${APPLE_API_KEY}.p8"
-          echo "APPLE_API_KEY_PATH=$HOME/private_keys/AuthKey_${APPLE_API_KEY}.p8" >> "$GITHUB_ENV"
-          echo "API_PRIVATE_KEYS_DIR=$HOME/private_keys" >> "$GITHUB_ENV"
-
       - name: Build and upload release
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # macOS 签名（Tauri bundler 会自动导入证书并签名）
+          # macOS 代码签名（Developer ID Application .p12）
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          # 公证 — Apple ID
+          # macOS 公证（Apple ID + App 专用密码）
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          # 公证 — API Key（与上面二选一；推荐）
-          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
-          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
-          APPLE_API_KEY_PATH: ${{ env.APPLE_API_KEY_PATH }}
-          API_PRIVATE_KEYS_DIR: ${{ env.API_PRIVATE_KEYS_DIR }}
         with:
           tagName: ${{ github.ref_name }}
           releaseName: CodecBox ${{ github.ref_name }}
           releaseBody: |
-            ## CodecBox
+            ## CodecBox ${{ github.ref_name }}
 
-            下载对应平台安装包后安装即可。
+            下载对应平台安装包：
 
-            - **macOS**：`.dmg`（已签名；配置公证 Secrets 后会公证）
-            - **Windows**：`.msi` / `.exe`
-            - **Linux**：`.deb` / `.AppImage`
+            | 平台 | 产物 |
+            | --- | --- |
+            | Windows | `.msi` / `.exe` (NSIS) |
+            | macOS (Apple Silicon) | `.dmg` / `.app.tar.gz` (aarch64) |
+            | macOS (Intel) | `.dmg` / `.app.tar.gz` (x86_64) |
+            | Linux | `.deb` / `.AppImage` |
 
             运行时需要本机已安装 FFmpeg（含 `ffmpeg` / `ffprobe`）。
-          releaseDraft: true
-          prerelease: false
+
+            产品说明见 `README.md` / `产品功能说明.md`。
+          releaseDraft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
           args: ${{ matrix.args }}
