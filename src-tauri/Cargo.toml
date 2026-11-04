@@ -1,6 +1,6 @@
 [package]
 name = "codecbox"
-version = "0.1.0"
+version = "0.2.0",
 description = "CodecBox — desktop audio/video converter"
 authors = ["you"]
 license = "MIT"

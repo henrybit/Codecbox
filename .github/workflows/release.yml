@@ -60,12 +60,73 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      # Tauri 调用 `security import` 时，对现代 PBES2/AES 加密的 .p12 常报
+      # “MAC verification failed (wrong password?)”。先用 OpenSSL 3 校验并重导出为
+      # legacy 格式，再交给 tauri-action，避免误导性密码错误。
+      - name: Prepare Apple signing certificate
+        if: startsWith(matrix.platform, 'macos')
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${APPLE_CERTIFICATE}" ]; then
+            echo "APPLE_CERTIFICATE is empty; macOS build will be unsigned."
+            exit 0
+          fi
+          if [ -z "${APPLE_CERTIFICATE_PASSWORD}" ]; then
+            echo "::error::APPLE_CERTIFICATE_PASSWORD is empty"
+            exit 1
+          fi
+
+          brew install openssl@3 >/dev/null
+          OPENSSL="$(brew --prefix openssl@3)/bin/openssl"
+
+          P12="$RUNNER_TEMP/certificate.p12"
+          PEM="$RUNNER_TEMP/certificate.pem"
+          LEGACY_P12="$RUNNER_TEMP/certificate-legacy.p12"
+
+          echo "$APPLE_CERTIFICATE" | base64 --decode > "$P12"
+          echo "Decoded .p12 size: $(wc -c < "$P12") bytes"
+
+          if ! "$OPENSSL" pkcs12 -in "$P12" -nodes -legacy \
+            -passin env:APPLE_CERTIFICATE_PASSWORD \
+            -out "$PEM" 2>"$RUNNER_TEMP/p12-check.log"; then
+            # 再试不带 -legacy（旧格式证书）
+            if ! "$OPENSSL" pkcs12 -in "$P12" -nodes \
+              -passin env:APPLE_CERTIFICATE_PASSWORD \
+              -out "$PEM" 2>>"$RUNNER_TEMP/p12-check.log"; then
+              echo "::error::Cannot open APPLE_CERTIFICATE with APPLE_CERTIFICATE_PASSWORD."
+              echo "Common causes: wrong password, truncated/newline-broken base64, or corrupted .p12."
+              echo "Re-export locally:"
+              echo "  openssl pkcs12 -in cert.p12 -nodes -out cert.pem -passin pass:YOUR_PASS"
+              echo "  openssl pkcs12 -export -legacy -in cert.pem -out cert-legacy.p12 -passout pass:YOUR_PASS"
+              echo "  openssl base64 -A -in cert-legacy.p12 | pbcopy"
+              cat "$RUNNER_TEMP/p12-check.log"
+              exit 1
+            fi
+          fi
+
+          "$OPENSSL" pkcs12 -export -legacy \
+            -in "$PEM" \
+            -out "$LEGACY_P12" \
+            -passout env:APPLE_CERTIFICATE_PASSWORD
+
+          {
+            echo "APPLE_CERTIFICATE<<EOF"
+            "$OPENSSL" base64 -A -in "$LEGACY_P12"
+            echo
+            echo "EOF"
+          } >> "$GITHUB_ENV"
+
+          rm -f "$P12" "$PEM" "$LEGACY_P12"
+          echo "Apple certificate prepared as legacy PKCS12 for security import."
+
       - name: Build and upload release
         uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # macOS 代码签名（Developer ID Application .p12）
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          # APPLE_CERTIFICATE 由上方 Prepare 步骤写入 GITHUB_ENV（legacy .p12）
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
           # macOS 公证（Apple ID + App 专用密码）
