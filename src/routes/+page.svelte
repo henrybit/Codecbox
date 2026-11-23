@@ -1,7 +1,9 @@
 <script lang="ts">
 	import AppShell from '$lib/components/layout/AppShell.svelte';
+	import LanguageSwitch from '$lib/components/layout/LanguageSwitch.svelte';
 	import ModeRail from '$lib/components/layout/ModeRail.svelte';
 	import ConverterWorkspace from '$lib/components/convert/ConverterWorkspace.svelte';
+	import { t } from '$lib/i18n';
 	import { converter } from '$lib/stores/converter.svelte';
 </script>
 
@@ -10,11 +12,20 @@
 		<header>
 			<div>
 				<p class="brand">CodecBox</p>
-				<h1>音视频转换工具</h1>
+				<h1>{t('appTitle')}</h1>
 			</div>
-			<div class="status" class:ok={converter.ffmpeg?.available}>
-				<span></span>
-				{converter.ffmpeg?.available ? 'FFmpeg 已连接' : '正在检测 FFmpeg'}
+			<div class="tools">
+				<LanguageSwitch />
+				<div class="status" class:ok={converter.ffmpeg?.available}>
+					<span></span>
+					{#if !converter.ffmpeg}
+						{t('ffmpegChecking')}
+					{:else if converter.ffmpeg.available}
+						{t('ffmpegConnected')}
+					{:else}
+						{t('ffmpegUnavailable')}
+					{/if}
+				</div>
 			</div>
 		</header>
 
@@ -40,6 +51,13 @@
 		justify-content: space-between;
 		align-items: end;
 		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.tools {
+		display: flex;
+		align-items: center;
+		gap: 0.85rem;
 	}
 
 	.brand {

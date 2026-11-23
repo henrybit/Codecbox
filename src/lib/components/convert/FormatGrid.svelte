@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { formatBlurb } from '$lib/i18n';
 	import { converter } from '$lib/stores/converter.svelte';
 </script>
 
@@ -11,7 +12,7 @@
 		>
 			<strong>{format.label}</strong>
 			<span>.{format.extension}</span>
-			<em>{format.description}</em>
+			<em>{formatBlurb(format.id, format.description)}</em>
 		</button>
 	{/each}
 </div>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { localizeMessage, t } from '$lib/i18n';
 	import { converter } from '$lib/stores/converter.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -12,37 +13,37 @@
 
 <div class="workspace">
 	{#if converter.ffmpeg && !converter.ffmpeg.available}
-		<p class="banner">{converter.ffmpeg.message}</p>
+		<p class="banner">{localizeMessage(converter.ffmpeg.message)}</p>
 	{/if}
 
-	<Card title="源文件">
+	<Card title={t('sourceFile')}>
 		<FileDropZone />
 		<MediaInfoCard />
 	</Card>
 
-	<Card title="输出格式">
+	<Card title={t('outputFormat')}>
 		<FormatGrid />
 	</Card>
 
-	<Card title="转码参数">
+	<Card title={t('encodeSettings')}>
 		<QualityPanel />
 	</Card>
 
-	<Card title="导出">
+	<Card title={t('export')}>
 		<div class="export">
 			<OutputField />
 			<div class="actions">
 				{#if converter.busy}
-					<Button variant="danger" onclick={() => converter.cancel()}>取消转换</Button>
+					<Button variant="danger" onclick={() => converter.cancel()}>{t('cancel')}</Button>
 				{:else}
 					<Button block disabled={!converter.canStart} onclick={() => converter.start()}>
-						开始转换
+						{t('start')}
 					</Button>
 				{/if}
 			</div>
 			<ProgressPanel />
 			{#if converter.error}
-				<p class="error">{converter.error}</p>
+				<p class="error">{localizeMessage(converter.error)}</p>
 			{/if}
 		</div>
 	</Card>

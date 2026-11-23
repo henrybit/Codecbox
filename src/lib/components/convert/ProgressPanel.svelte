@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { localizeMessage, t } from '$lib/i18n';
 	import { converter } from '$lib/stores/converter.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import { formatDuration } from '$lib/utils/format';
@@ -13,7 +14,7 @@
 			<span style:width="{percent}%"></span>
 		</div>
 		<div class="copy">
-			<strong>{converter.progress.message ?? '处理中'}</strong>
+			<strong>{localizeMessage(converter.progress.message) || t('working')}</strong>
 			<span>
 				{percent}%
 				{#if converter.progress.outTimeSecs}
@@ -25,7 +26,7 @@
 			</span>
 		</div>
 		{#if done}
-			<Button variant="soft" onclick={() => converter.revealOutput()}>在文件夹中显示</Button>
+			<Button variant="soft" onclick={() => converter.revealOutput()}>{t('showInFolder')}</Button>
 		{/if}
 	</div>
 {/if}

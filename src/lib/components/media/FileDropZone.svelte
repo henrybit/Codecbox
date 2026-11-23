@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
 	import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
+	import { modeCopy, t } from '$lib/i18n';
 	import { converter } from '$lib/stores/converter.svelte';
 
 	let unlisten: (() => void) | undefined;
@@ -37,9 +38,9 @@
 			<path d="M0 24c16 0 16-16 32-16s16 32 32 32 16-32 32-32 16 32 32 32 16-32 32-32 16 16 32 16" />
 		</svg>
 	</div>
-	<p class="title">拖入{converter.modeInfo.accept === 'audio' ? '音频' : '视频'}，或点击选择</p>
-	<p class="hint">{converter.modeInfo.hint}</p>
-	<span class="cta">选择文件</span>
+	<p class="title">{converter.modeInfo.accept === 'audio' ? t('dropAudio') : t('dropVideo')}</p>
+	<p class="hint">{modeCopy(converter.mode).hint}</p>
+	<span class="cta">{t('chooseFile')}</span>
 </button>
 
 <style>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { converter } from '$lib/stores/converter.svelte';
+	import { localizeOptions, t } from '$lib/i18n';
 	import Select from '$lib/components/ui/Select.svelte';
 	import {
 		BITRATE_OPTIONS,
@@ -16,27 +17,35 @@
 	const showBitrate = $derived(converter.currentFormat?.supportsAudioBitrate ?? false);
 	const isGif = $derived(converter.currentFormat?.id === 'gif');
 	const isHls = $derived(converter.currentFormat?.id === 'hls');
+	const resolutionOptions = $derived(localizeOptions(RESOLUTION_OPTIONS));
+	const fpsOptions = $derived(localizeOptions(FPS_OPTIONS));
+	const qualityOptions = $derived(localizeOptions(QUALITY_OPTIONS));
+	const presetOptions = $derived(localizeOptions(PRESET_OPTIONS));
+	const segmentOptions = $derived(localizeOptions(HLS_SEGMENT_OPTIONS));
+	const bitrateOptions = $derived(localizeOptions(BITRATE_OPTIONS));
+	const sampleRateOptions = $derived(localizeOptions(SAMPLE_RATE_OPTIONS));
+	const channelOptions = $derived(localizeOptions(CHANNEL_OPTIONS));
 </script>
 
 <div class="panel">
 	{#if showVideo}
-		<Select label="分辨率" items={RESOLUTION_OPTIONS} bind:value={converter.video.resolution} />
-		<Select label="帧率" items={FPS_OPTIONS} bind:value={converter.video.fps} />
-		<Select label="画质" items={QUALITY_OPTIONS} bind:value={converter.video.quality} />
+		<Select label={t('resolution')} items={resolutionOptions} bind:value={converter.video.resolution} />
+		<Select label={t('fps')} items={fpsOptions} bind:value={converter.video.fps} />
+		<Select label={t('quality')} items={qualityOptions} bind:value={converter.video.quality} />
 		{#if !isGif}
-			<Select label="编码速度" items={PRESET_OPTIONS} bind:value={converter.video.preset} />
+			<Select label={t('preset')} items={presetOptions} bind:value={converter.video.preset} />
 		{/if}
 		{#if isHls}
-			<Select label="分片时长" items={HLS_SEGMENT_OPTIONS} bind:value={converter.video.segmentSecs} />
+			<Select label={t('segment')} items={segmentOptions} bind:value={converter.video.segmentSecs} />
 		{/if}
 	{/if}
 
 	{#if !isGif}
 		{#if showBitrate}
-			<Select label="音频码率" items={BITRATE_OPTIONS} bind:value={converter.audio.bitrate} />
+			<Select label={t('bitrate')} items={bitrateOptions} bind:value={converter.audio.bitrate} />
 		{/if}
-		<Select label="采样率" items={SAMPLE_RATE_OPTIONS} bind:value={converter.audio.sampleRate} />
-		<Select label="声道" items={CHANNEL_OPTIONS} bind:value={converter.audio.channels} />
+		<Select label={t('sampleRate')} items={sampleRateOptions} bind:value={converter.audio.sampleRate} />
+		<Select label={t('channels')} items={channelOptions} bind:value={converter.audio.channels} />
 	{/if}
 </div>
 

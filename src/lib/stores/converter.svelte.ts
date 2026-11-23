@@ -12,6 +12,7 @@ import type {
 	MediaInfo,
 	VideoOptions
 } from '$lib/types/media';
+import { t } from '$lib/i18n';
 import { fileExtension, invokeErrorMessage } from '$lib/utils/format';
 
 const defaultAudio = (): AudioOptions => ({
@@ -97,10 +98,10 @@ class ConverterStore {
 	async pickInput() {
 		const selected = await open({
 			multiple: false,
-			title: '选择源文件',
+			title: t('pickInputTitle'),
 			filters: [
 				{
-					name: this.modeInfo.accept === 'audio' ? '音频文件' : '视频文件',
+					name: this.modeInfo.accept === 'audio' ? t('audioFiles') : t('videoFiles'),
 					extensions: extensionsFor(this.mode)
 				}
 			]
@@ -138,9 +139,9 @@ class ConverterStore {
 	async pickOutput() {
 		const extension = this.currentFormat?.extension ?? 'bin';
 		const selected = await save({
-			title: '选择输出文件',
+			title: t('pickOutputTitle'),
 			defaultPath: this.outputPath || `output.${extension}`,
-			filters: [{ name: this.currentFormat?.label ?? '媒体文件', extensions: [extension] }]
+			filters: [{ name: this.currentFormat?.label ?? t('mediaFile'), extensions: [extension] }]
 		});
 		if (typeof selected === 'string') {
 			this.outputPath = selected;

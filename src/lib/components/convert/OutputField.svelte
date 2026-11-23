@@ -1,16 +1,17 @@
 <script lang="ts">
+	import { t } from '$lib/i18n';
 	import { converter } from '$lib/stores/converter.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 </script>
 
 <label>
-	<span>输出路径</span>
+	<span>{t('outputPath')}</span>
 	<div class="row">
-		<input bind:value={converter.outputPath} placeholder="选择或输入输出文件路径" disabled={converter.busy} />
-		<Button variant="ghost" onclick={() => converter.pickOutput()}>浏览</Button>
+		<input bind:value={converter.outputPath} placeholder={t('outputPlaceholder')} disabled={converter.busy} />
+		<Button variant="ghost" onclick={() => converter.pickOutput()}>{t('browse')}</Button>
 	</div>
 	{#if converter.currentFormat?.id === 'hls'}
-		<p class="hint">HLS 会生成 .m3u8 播放列表，以及同目录下的 .ts 分片文件。</p>
+		<p class="hint">{t('hlsHint')}</p>
 	{/if}
 </label>
 

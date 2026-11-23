@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { converter } from '$lib/stores/converter.svelte';
 	import { MODES } from '$lib/config/modes';
+	import { modeCopy, t } from '$lib/i18n';
 
 	const icons: Record<string, string> = {
 		'audio-to-audio': 'M4 14c3-6 6-9 10-10 4 1 7 4 10 10-3 6-6 9-10 10-4-1-7-4-10-10zm10-3.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7z',
@@ -10,8 +11,9 @@
 </script>
 
 <aside>
-	<p class="kicker">工作模式</p>
+	<p class="kicker">{t('modeKicker')}</p>
 	{#each MODES as mode (mode.id)}
+		{@const copy = modeCopy(mode.id)}
 		<button
 			class="mode {mode.accent}"
 			class:active={converter.mode === mode.id}
@@ -24,8 +26,8 @@
 				</svg>
 			</span>
 			<span>
-				<strong>{mode.title}</strong>
-				<em>{mode.subtitle}</em>
+				<strong>{copy.title}</strong>
+				<em>{copy.subtitle}</em>
 			</span>
 		</button>
 	{/each}
